@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agenda João</title>
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#5C1A28"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Agenda João"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bx:#5C1A28;--bx2:#7A2438;--bx3:#9E3050;--bxl:#f9f0f2;--bxll:#fdf5f6;
+  --bg:#F4F5F7;--white:#fff;--text:#1a1a2e;--muted:#7a7a8c;
+  --border:#e8e0e2;--shadow:0 2px 12px rgba(92,26,40,.10);
+  --radius:12px;--font:'Segoe UI',sans-serif;
+  --red:#c50f1f;--redbg:#fde7e9;--orange:#ca5010;--orangebg:#fdf2e9;
+  --green:#107c10;--blue:#0078d4;--purple:#8764b8;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden}
+button{cursor:pointer;font-family:var(--font)}
+input,select,textarea{font-family:var(--font)}
+
+/* SIDEBAR */
+.sidebar{width:220px;flex-shrink:0;background:var(--bx);display:flex;flex-direction:column;height:100vh}
+.sb-logo{padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-logo .lt{font-size:15px;font-weight:700;color:#fff}
+.sb-logo .ls{font-size:10px;color:rgba(255,255,255,.45);margin-top:2px}
+.sb-nav{flex:1;padding:10px 0;overflow-y:auto}
+.sb-section{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:1px;padding:12px 18px 5px}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 18px;cursor:pointer;transition:background .15s;border-left:3px solid transparent}
+.ni:hover{background:rgba(255,255,255,.07)}
+.ni.active{background:rgba(255,255,255,.13);border-left-color:#fff}
+.ni .ic{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.ni .lb{font-size:13px;color:rgba(255,255,255,.88);font-weight:500}
+.ni .bd{margin-left:auto;background:var(--bx3);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;min-width:20px;text-align:center}
+.sb-bottom{padding:12px 14px;border-top:1px solid rgba(255,255,255,.1)}
+.sb-bottom .si{font-size:10px;color:rgba(255,255,255,.35);text-align:center}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:13px 22px;display:flex;align-items:center;gap:10px;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.topbar h2{font-size:16px;font-weight:700}
+.tb-actions{margin-left:auto;display:flex;gap:8px}
+.content{flex:1;overflow-y:auto;padding:18px 22px}
+
+/* BUTTONS */
+.btn{padding:7px 15px;border-radius:8px;border:none;font-size:12px;font-weight:600;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn-primary{background:var(--bx);color:#fff}
+.btn-secondary{background:var(--bxl);color:var(--bx);border:1px solid #ddd}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--muted)}
+.btn-sm{padding:5px 11px;font-size:11px}
+.btn-red{background:var(--redbg);color:var(--red)}
+.btn-green{background:#e8f5e9;color:var(--green)}
+
+/* CALENDAR */
+.cal-nav{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.cal-nav h3{font-size:17px;font-weight:700;flex:1}
+.cal-grid{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);background:var(--bxl)}
+.cal-dow div{padding:9px;text-align:center;font-size:10px;font-weight:700;color:var(--bx);text-transform:uppercase;letter-spacing:.5px}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-cell{min-height:90px;padding:7px;border-top:1px solid var(--border);border-right:1px solid var(--border);cursor:pointer;transition:background .12s}
+.cal-cell:hover{background:var(--bxll)}
+.cal-cell.other{background:#fafafa}
+.cal-cell.other .cdn{color:#ccc}
+.cal-cell.today{background:var(--bxl)}
+.cal-cell.today .cdn{background:var(--bx);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+.cdn{font-size:12px;font-weight:600;margin-bottom:3px;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+.cal-pill{font-size:9px;padding:2px 5px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;font-weight:600;cursor:pointer}
+.cal-more{font-size:9px;color:var(--muted)}
+
+/* WEEK */
+.week-grid{display:flex;overflow-x:auto}
+.wg-hcol{width:42px;flex-shrink:0;margin-top:38px}
+.wg-hl{height:56px;font-size:10px;color:var(--muted);text-align:right;padding-right:5px;padding-top:2px}
+.wg-day{flex:1;min-width:95px}
+.wg-dh{height:38px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--white);border-bottom:2px solid var(--border);cursor:pointer}
+.wg-dh:hover{background:var(--bxl)}
+.wg-dh.today{background:var(--bx);color:#fff;border-radius:8px 8px 0 0}
+.wg-db{position:relative;background:#fafafa;border-right:1px solid var(--border)}
+.wg-hline{position:absolute;left:0;right:0;border-top:1px solid #ececec}
+.wg-block{position:absolute;left:2px;right:2px;border-radius:6px;color:#fff;padding:3px 6px;font-size:10px;overflow:hidden;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.12)}
+
+/* DIA */
+.dia-item{display:flex;gap:10px;margin-bottom:9px;cursor:pointer}
+.dia-time{width:58px;flex-shrink:0;text-align:right;padding-top:10px;font-size:11px;color:var(--muted);font-weight:600}
+.dia-card{flex:1;background:var(--white);border-radius:10px;padding:10px 14px;box-shadow:var(--shadow)}
+
+/* TASKS */
+.task-group{margin-bottom:18px}
+.tg-header{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px 8px 0 0;font-weight:700;font-size:13px}
+.task-row{background:var(--white);padding:10px 14px;display:flex;align-items:center;gap:9px;border-top:1px solid var(--border);flex-wrap:wrap}
+.task-row.done{opacity:.5}
+.tr-main{flex:1;min-width:0}
+.tr-title{font-size:13px;font-weight:600}
+.task-row.done .tr-title{text-decoration:line-through}
+.tr-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.tag{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;white-space:nowrap}
+.tr-actions{display:flex;gap:4px;align-items:center}
+.tr-actions button{background:none;border:none;font-size:14px;padding:2px 4px;opacity:.55}
+.tr-actions button:hover{opacity:1}
+.timer-btn{padding:4px 10px;border-radius:8px;border:none;font-size:11px;font-weight:700}
+.timer-running{background:#e8f5e9;color:var(--green);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.timer-stopped{background:var(--bxl);color:var(--bx)}
+.tr-time{font-size:11px;color:var(--muted);white-space:nowrap}
+
+/* DASHBOARD */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:22px}
+.kpi-card{background:var(--white);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);border-top:4px solid #ccc}
+.kpi-card .kv{font-size:26px;font-weight:700;margin-bottom:2px}
+.kpi-card .kl{font-size:12px;color:var(--muted)}
+.kpi-card .kp{font-size:13px;font-weight:700;margin-top:4px}
+.chart-wrap{background:var(--white);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:18px}
+.chart-wrap h3{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--text)}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bar-label{width:120px;font-size:12px;color:var(--text);flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:20px;background:#f0f0f0;border-radius:10px;overflow:hidden}
+.bar-fill{height:100%;border-radius:10px;transition:width .5s}
+.bar-val{width:70px;font-size:11px;color:var(--muted);text-align:right;flex-shrink:0}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.month-sel{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.month-sel select{padding:6px 10px;border-radius:8px;border:1.5px solid var(--border);font-size:12px}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:500;padding:16px}
+.modal{background:var(--white);border-radius:16px;padding:24px;width:100%;max-width:420px;box-shadow:0 16px 48px rgba(92,26,40,.2);max-height:92vh;overflow-y:auto}
+.modal h2{font-size:15px;font-weight:700;margin-bottom:16px;color:var(--bx)}
+.ff{margin-bottom:11px}
+.ff label{display:block;font-size:10px;font-weight:700;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px}
+.ff input,.ff select,.ff textarea{width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;outline:none;transition:border .15s}
+.ff input:focus,.ff select:focus,.ff textarea:focus{border-color:var(--bx)}
+.ff textarea{height:64px;resize:vertical}
+.row2{display:flex;gap:10px}
+.row2 .ff{flex:1}
+.modal-btns{display:flex;gap:7px;margin-top:18px}
+.modal-btns .btn{flex:1}
+.btn-del{background:var(--redbg);color:var(--red);flex:0!important;padding:7px 13px}
+.modal-time-log{background:var(--bxl);border-radius:10px;padding:12px;margin-bottom:12px}
+.modal-time-log h4{font-size:12px;font-weight:700;color:var(--bx);margin-bottom:8px}
+.time-entry{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}
+.time-entry .te-del{background:none;border:none;color:var(--red);font-size:13px;opacity:.6}
+.time-entry .te-del:hover{opacity:1}
+
+/* MISC */
+.empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:14px}
+.empty .ei{font-size:32px;margin-bottom:8px}
+.legend-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)}
+.ldot{width:10px;height:10px;border-radius:3px;display:inline-block}
+.section-divider{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:4px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="lt">📅 Agenda João Salcedas</div>
+    <div class="ls">Gestão de tempo</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Principal</div>
+    <div class="ni active" onclick="setView('calendario')" id="nav-calendario"><span class="ic">🗓</span><span class="lb">Calendário</span></div>
+    <div class="ni" onclick="setView('semana')" id="nav-semana"><span class="ic">📆</span><span class="lb">Semana</span></div>
+    <div class="ni" onclick="setView('dia')" id="nav-dia"><span class="ic">📋</span><span class="lb">Dia</span></div>
+    <div class="sb-section">Gestão</div>
+    <div class="ni" onclick="setView('tarefas')" id="nav-tarefas"><span class="ic">✅</span><span class="lb">Tarefas</span><span class="bd" id="bd-tarefas">0</span></div>
+    <div class="ni" onclick="setView('dashboard')" id="nav-dashboard"><span class="ic">📊</span><span class="lb">Tempos</span></div>
+    <div class="ni" onclick="setView('relatorio')" id="nav-relatorio"><span class="ic">💶</span><span class="lb">Por Cliente</span></div>
+    <div class="ni" onclick="setView('blocos')" id="nav-blocos"><span class="ic">⚙️</span><span class="lb">Blocos Base</span><span class="bd" id="bd-blocos">0</span></div>
+  </div>
+  <div class="sb-bottom"><div class="si" id="sync-info">A carregar…</div></div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <h2 id="tb-title">Calendário</h2>
+    <div class="tb-actions" id="tb-actions"></div>
+  </div>
+  <div class="content" id="content"><div class="empty"><div class="ei">⏳</div>A carregar dados…</div></div>
+</div>
+
+<div class="overlay" id="overlay" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-body"></div>
+</div>
+
+<script>
+const API="https://script.google.com/macros/s/AKfycbz0t3bDl1vTDTh-gQTSNXgiJLKQEFJQgSTzuwkXr7LqMqQ54TBjRjh7Lkvnt-l-GDFwTA/exec";
+function generateMondayNote(t){
+  const tt=TASK_TYPES.find(x=>x.id===t.type)||TASK_TYPES[0];
+  const logs=state.timeLogs.filter(l=>l.taskId===t.id);
+  const total=taskTotalMins(t.id);
+  const logsDetail=logs.length?logs.map(l=>{
+    let line=`  • ${fmtDate(l.date)}`;
+    if(l.startTime&&l.endTime)line+=` · ${l.startTime} → ${l.endTime}`;
+    line+=` · ${fmtMins(l.minutes)}`;
+    return line;
+  }).join("\n"):"  • Sem sessões registadas";
+
+  return `No quadro "Processos", encontra o item do processo ${t.processo?`nº ${t.processo}`:""}${t.client?` do cliente ${t.client}`:""} e cria um subelemento com os seguintes dados:
+
+Nome do subelemento: ${t.text} · ${fmtDate(today())}
+
+Descrição:
+Tipo de ato: ${tt.label}
+Cliente: ${t.client||"—"}
+Nº Processo: ${t.processo||"—"}
+Área: ${t.area}
+Data de realização: ${fmtDate(today())}
+Tempo total: ${fmtMins(total)}
+
+Detalhe de sessões:
+${logsDetail}`;
+}
+
+function sendToMonday(taskId){
+  const t=state.tasks.find(x=>x.id===taskId);
+  if(!t)return;
+  const note=generateMondayNote(t);
+  previewMondayNote(taskId,note);
+}
+const PH=56, HOURS=Array.from({length:15},(_,i)=>i+7);
+const DNAMES=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
+const DSHORT=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+const MONTHS=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+const CATS=[
+  {id:"producao",label:"Produção",color:"#0078d4"},
+  {id:"atendimento",label:"Atendimentos",color:"#107c10"},
+  {id:"gestao",label:"Gestão",color:"#5C1A28"},
+  {id:"admin",label:"Administrativo",color:"#ca5010"},
+  {id:"reuniao",label:"Reunião",color:"#8764b8"},
+  {id:"pessoal",label:"Pessoal",color:"#e3008c"},
+  {id:"pausa",label:"Pausa",color:"#767676"},
+  {id:"outro",label:"Outro",color:"#4a4a4a"}
+];
+const TASK_TYPES=[
+  {id:"gestao",label:"Gestão"},
+  {id:"processual",label:"Processual"},
+  {id:"reuniao",label:"Reunião"},
+  {id:"admin",label:"Administrativo"},
+  {id:"outro",label:"Outro"}
+];
+const QUADS=[
+  {id:"UIP",label:"Urgente & Importante",sub:"Faz agora",color:"#c50f1f",bg:"#fde7e9"},
+  {id:"INU",label:"Importante, Não Urgente",sub:"Agenda",color:"#0078d4",bg:"#e8f0fe"},
+  {id:"UNI",label:"Urgente, Não Importante",sub:"Delega",color:"#ca5010",bg:"#fdf2e9"},
+  {id:"NIN",label:"Não Urgente Nem Importante",sub:"Elimina",color:"#767676",bg:"#f3f3f3"}
+];
+const AREAS=["Trabalho","Clientes","Pessoal"];
+const ACOL={Trabalho:"#0078d4",Clientes:"#107c10",Pessoal:"#8764b8"};
+const CAT=Object.fromEntries(CATS.map(c=>[c.id,c]));
+
+let state={blocks:[],events:[],tasks:[],timeLogs:[]};
+let curView="calendario";
+let calMonth=new Date(); calMonth.setDate(1);
+let weekStart=getWeekStart(new Date());
+let selDay=toDS(new Date());
+let dashMonth=new Date().getMonth();
+let dashYear=new Date().getFullYear();
+let dashCmp=false;
+let cmpMonth=new Date().getMonth()>0?new Date().getMonth()-1:11;
+let cmpYear=new Date().getMonth()>0?new Date().getFullYear():new Date().getFullYear()-1;
+let activeTimer={taskId:null,start:null};
+let timerInterval=null;
+let _uid=Date.now(); const nid=()=>(++_uid).toString();
+
+function toDS(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r}
+function getWeekStart(d){const dt=new Date(d);const day=dt.getDay();const diff=day===0?-6:1-day;dt.setDate(dt.getDate()+diff);dt.setHours(0,0,0,0);return dt}
+function fmt(h){return String(h).padStart(2,"0")+":00"}
+function fmtMins(m){if(!m)return"0m";const h=Math.floor(m/60),mn=m%60;return h>0?`${h}h${mn>0?" "+mn+"m":""}`:`${mn}m`}
+function fmtDate(ds){if(!ds)return"";const[y,m,d]=ds.split("-");return`${+d} ${["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"][+m-1]}`}
+function today(){return toDS(new Date())}
+function isPast(ds){return ds&&ds<today()&&ds!==today()}
+
+// ── SYNC ──
+async function syncUp(tab,rows){setSS("A guardar…");try{await fetch(API,{method:"POST",body:JSON.stringify({tab,rows})});setSS("Guardado ✓");setTimeout(()=>setSS("Sincronizado"),3000);}catch{setSS("Erro");}}
+async function syncDown(tab){try{const r=await fetch(API+"?tab="+tab);return await r.json();}catch{return[];}}
+function setSS(s){const el=document.getElementById("sync-info");if(el)el.textContent=s;}
+
+// ── SERIALIZE ──
+function bToR(a){return[["id","label","cat","start","end","days"],...a.map(b=>[b.id,b.label,b.cat,b.start,b.end,b.days.join(",")])]}
+function rToB(r){return r.slice(1).map(x=>({id:x[0],label:x[1],cat:x[2],start:+x[3],end:+x[4],days:x[5]?x[5].split(",").map(Number):[]}))}
+function eToR(a){return[["id","title","cat","date","start","end","client","notes"],...a.map(e=>[e.id,e.title,e.cat,e.date,e.start,e.end,e.client||"",e.notes||""])]}
+function rToE(r){return r.slice(1).map(x=>({id:x[0],title:x[1],cat:x[2],date:x[3],start:+x[4],end:+x[5],client:x[6],notes:x[7]}))}
+function tToR(a){return[["id","text","area","quadrant","hoje","done","date","type","client","processo"],...a.map(t=>[t.id,t.text,t.area,t.quadrant,t.hoje?1:0,t.done?1:0,t.date||"",t.type||"gestao",t.client||"",t.processo||""])]}
+function rToT(r){return r.slice(1).map(x=>({id:x[0],text:x[1],area:x[2],quadrant:x[3],hoje:!!+x[4],done:!!+x[5],date:x[6]||"",type:x[7]||"gestao",client:x[8]||"",processo:x[9]||""}))}
+function lToR(a){return[["id","taskId","date","minutes","cat","note"],...a.map(l=>[l.id,l.taskId,l.date,l.minutes,l.cat,l.note||""])]}
+function rToL(r){return r.slice(1).map(x=>({id:x[0],taskId:x[1],date:x[2],minutes:+x[3],cat:x[4],note:x[5]||""}))}
+
+async function loadAll(){
+  const[br,er,tr,lr]=await Promise.all([syncDown("blocos"),syncDown("eventos"),syncDown("tarefas"),syncDown("timelogs")]);
+  state.blocks=br.length>1?rToB(br):[];
+  state.events=er.length>1?rToE(er):[];
+  state.tasks=tr.length>1?rToT(tr):[];
+  state.timeLogs=lr.length>1?rToL(lr):[];
+  setSS("Sincronizado");
+  render();
+}
+
+// ── TIMER ──
+function fmtTime(d){return`${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}
+function startTimer(taskId){
+  if(activeTimer.taskId){stopTimer();}
+  activeTimer={taskId,start:Date.now(),startDate:new Date()};
+  timerInterval=setInterval(()=>{
+    const el=document.getElementById("timer-display-"+taskId);
+    if(el){const mins=Math.floor((Date.now()-activeTimer.start)/60000);el.textContent=`⏱ ${fmtTime(activeTimer.startDate)} → ${fmtMins(mins)}`;}
+  },10000);
+  render();
+}
+function stopTimer(){
+  if(!activeTimer.taskId)return;
+  const endDate=new Date();
+  const mins=Math.max(1,Math.round((Date.now()-activeTimer.start)/60000));
+  const task=state.tasks.find(t=>t.id===activeTimer.taskId);
+  const cat=TASK_TYPES.find(tt=>tt.id===(task?.type||"gestao"))?.id||"gestao";
+  const log={id:nid(),taskId:activeTimer.taskId,date:today(),minutes:mins,cat,note:"Cronómetro",startTime:fmtTime(activeTimer.startDate),endTime:fmtTime(endDate)};
+  state.timeLogs=[...state.timeLogs,log];
+  syncUp("timelogs",lToR(state.timeLogs));
+  activeTimer={taskId:null,start:null,startDate:null};
+  clearInterval(timerInterval);
+  render();
+}
+function addManualTime(taskId,mins,note,cat){
+  const log={id:nid(),taskId,date:today(),minutes:+mins,cat,note:note||"Manual"};
+  state.timeLogs=[...state.timeLogs,log];
+  syncUp("timelogs",lToR(state.timeLogs));
+}
+function delLog(id){state.timeLogs=state.timeLogs.filter(l=>l.id!==id);syncUp("timelogs",lToR(state.timeLogs));}
+function taskTotalMins(taskId){return state.timeLogs.filter(l=>l.taskId===taskId).reduce((a,l)=>a+l.minutes,0);}
+
+// ── NAVIGATION ──
+function setView(v){
+  curView=v;
+  document.querySelectorAll(".ni").forEach(el=>el.classList.remove("active"));
+  const ni=document.getElementById("nav-"+v);if(ni)ni.classList.add("active");
+  render();
+}
+function render(){
+  updateBadges();
+  const titles={calendario:"Calendário",semana:"Agenda Semanal",dia:"Vista de Dia",tarefas:"Tarefas",dashboard:"Dashboard de Tempos",relatorio:"Relatório por Cliente",blocos:"Blocos de Tempo Base"};
+  document.getElementById("tb-title").textContent=titles[curView]||"";
+  const ta=document.getElementById("tb-actions");
+  if(curView==="calendario")ta.innerHTML=`<button class="btn btn-primary btn-sm" onclick="openEventModal()">+ Evento</button>`;
+  else if(curView==="semana")ta.innerHTML=`<button class="btn btn-secondary btn-sm" onclick="openBlockModal()">⚙ Bloco</button><button class="btn btn-primary btn-sm" onclick="openEventModal()">+ Evento</button>`;
+  else if(curView==="dia")ta.innerHTML=`<button class="btn btn-primary btn-sm" onclick="openEventModal(selDay)">+ Evento</button>`;
+  else if(curView==="tarefas")ta.innerHTML=`<button class="btn btn-primary btn-sm" onclick="openTaskModal()">+ Tarefa</button>`;
+  else if(curView==="blocos")ta.innerHTML=`<button class="btn btn-primary btn-sm" onclick="openBlockModal()">+ Bloco</button>`;
+  // prazos — tarefas processuais com prazo nos próximos 3 dias
+  const td2=today();
+  const urgent=state.tasks.filter(t=>{
+    if(t.done||!t.date)return false;
+    const diff=(new Date(t.date+"T12:00:00")-new Date(td2+"T12:00:00"))/(1000*60*60*24);
+    return diff>=0&&diff<=3;
+  });
+  if(urgent.length){
+    ta.innerHTML+=`<div style="display:flex;align-items:center;gap:6px;background:#fde7e9;color:#c50f1f;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700">⚠️ ${urgent.length} prazo(s) a vencer</div>`;
+  }
+  const c=document.getElementById("content");
+  if(curView==="calendario")c.innerHTML=renderCalendario();
+  else if(curView==="semana")c.innerHTML=renderSemana();
+  else if(curView==="dia")c.innerHTML=renderDia();
+  else if(curView==="tarefas")c.innerHTML=renderTarefas();
+  else if(curView==="dashboard")c.innerHTML=renderDashboard();
+  else if(curView==="relatorio")c.innerHTML=renderRelatorio();
+  else if(curView==="blocos")c.innerHTML=renderBlocos();
+}
+function updateBadges(){
+  const td=today();
+  const pending=state.tasks.filter(t=>!t.done).length;
+  const el=document.getElementById("bd-tarefas");if(el)el.textContent=pending;
+  const el2=document.getElementById("bd-blocos");if(el2)el2.textContent=state.blocks.length;
+}
+
+// ── CALENDÁRIO ──
+function renderCalendario(){
+  const td=today(),y=calMonth.getFullYear(),m=calMonth.getMonth();
+  const first=new Date(y,m,1),last=new Date(y,m+1,0);
+  let sdow=first.getDay();if(sdow===0)sdow=7;sdow--;
+  const cells=[];
+  for(let i=0;i<sdow;i++)cells.push({date:new Date(y,m,1-sdow+i),cur:false});
+  for(let d=1;d<=last.getDate();d++)cells.push({date:new Date(y,m,d),cur:true});
+  while(cells.length%7!==0)cells.push({date:addDays(cells[cells.length-1].date,1),cur:false});
+  let html=`<div class="cal-nav"><button class="btn btn-ghost btn-sm" onclick="calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()-1,1);render()">‹</button><h3>${MONTHS[m]} ${y}</h3><button class="btn btn-ghost btn-sm" onclick="calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+1,1);render()">›</button><button class="btn btn-secondary btn-sm" onclick="calMonth=new Date();calMonth.setDate(1);render()">Hoje</button></div>
+  <div class="cal-grid"><div class="cal-dow">${["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"].map(d=>`<div>${d}</div>`).join("")}</div><div class="cal-days">`;
+  cells.forEach(({date,cur})=>{
+    const ds=toDS(date),isT=ds===td;
+    const evs=state.events.filter(e=>e.date===ds);
+    const tsks=state.tasks.filter(t=>t.date===ds&&!t.done);
+    const all=[...evs.map(e=>({...e,_t:"ev"})),...tsks.map(t=>({...t,_t:"tk"}))];
+    const show=all.slice(0,3),more=all.length-3;
+    html+=`<div class="cal-cell${!cur?" other":""}${isT?" today":""}" onclick="selDay='${ds}';setView('dia')">
+      <div class="cdn">${date.getDate()}</div>
+      ${show.map(it=>{
+        if(it._t==="ev"){const c=CAT[it.cat]||CAT.outro;return`<div class="cal-pill" style="background:${c.color}" onclick="event.stopPropagation();openEventModal('${ds}',null,'${it.id}')">${it.title}</div>`;}
+        const ac=ACOL[it.area]||"#999";return`<div class="cal-pill" style="background:${ac};opacity:.8" onclick="event.stopPropagation();openTaskModal('${it.id}')">✅ ${it.text}</div>`;
+      }).join("")}
+      ${more>0?`<div class="cal-more">+${more} mais</div>`:""}
+    </div>`;
+  });
+  return html+`</div></div>`;
+}
+
+// ── SEMANA ──
+function renderSemana(){
+  const td=today(),wd=Array.from({length:5},(_,i)=>addDays(weekStart,i));
+  const s=wd[0].toLocaleDateString("pt-PT",{day:"numeric",month:"short"}),e=wd[4].toLocaleDateString("pt-PT",{day:"numeric",month:"short",year:"numeric"});
+  const gH=HOURS.length*PH;
+  let html=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+    <button class="btn btn-ghost btn-sm" onclick="weekStart=addDays(weekStart,-7);render()">‹</button>
+    <span style="font-weight:700;font-size:13px">${s} – ${e}</span>
+    <button class="btn btn-ghost btn-sm" onclick="weekStart=addDays(weekStart,7);render()">›</button>
+    <button class="btn btn-secondary btn-sm" onclick="weekStart=getWeekStart(new Date());render()">Hoje</button>
+  </div>
+  <div class="legend-row">${CATS.map(c=>`<div class="legend-item"><span class="ldot" style="background:${c.color}"></span>${c.label}</div>`).join("")}</div>
+  <div style="background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden">
+  <div class="week-grid"><div class="wg-hcol">${HOURS.map(h=>`<div class="wg-hl">${fmt(h)}</div>`).join("")}</div>`;
+  wd.forEach(date=>{
+    const ds=toDS(date),dn=date.getDay(),isT=ds===td;
+    const dbs=state.blocks.filter(b=>b.days.includes(dn));
+    const des=state.events.filter(ev=>ev.date===ds);
+    html+=`<div class="wg-day"><div class="wg-dh${isT?" today":""}" onclick="selDay='${ds}';setView('dia')"><div style="font-size:10px;font-weight:600">${DSHORT[dn]}</div><div style="font-size:13px;font-weight:700">${date.getDate()}</div></div>
+    <div class="wg-db" style="height:${gH}px">
+      ${HOURS.map(h=>`<div class="wg-hline" style="top:${(h-7)*PH}px"></div>`).join("")}
+      ${dbs.map(b=>{const c=CAT[b.cat]||CAT.outro;const top=(b.start-7)*PH;const h=Math.max((b.end-b.start)*PH-3,18);return`<div class="wg-block" style="top:${top}px;height:${h}px;background:${c.color};opacity:.4" onclick="openBlockModal('${b.id}')"><div style="font-weight:700;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.label||c.label}</div><div style="font-size:9px;opacity:.85">${fmt(b.start)}–${fmt(b.end)}</div></div>`;}).join("")}
+      ${des.map(ev=>{const c=CAT[ev.cat]||CAT.outro;const top=(ev.start-7)*PH;const h=Math.max((ev.end-ev.start)*PH-3,18);return`<div class="wg-block" style="top:${top}px;height:${h}px;background:${c.color};border:2px solid rgba(255,255,255,.35)" onclick="openEventModal('${ds}',null,'${ev.id}')"><div style="font-weight:700;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ev.title}</div><div style="font-size:9px">${fmt(ev.start)}–${fmt(ev.end)}</div>${ev.client?`<div style="font-size:9px;opacity:.85">👤 ${ev.client}</div>`:""}</div>`;}).join("")}
+    </div></div>`;
+  });
+  return html+`</div></div><div style="font-size:11px;color:var(--muted);margin-top:8px">💡 Blocos base aparecem transparentes.</div>`;
+}
+
+// ── NOTA RÁPIDA (guardada por dia) ──
+function getDayNotes(ds){try{return JSON.parse(localStorage.getItem("notes_"+ds)||"[]");}catch{return[];}}
+function saveDayNotes(ds,notes){localStorage.setItem("notes_"+ds,JSON.stringify(notes));}
+function addDayNote(ds){
+  const inp=document.getElementById("note-input");
+  if(!inp||!inp.value.trim())return;
+  const notes=getDayNotes(ds);
+  notes.push({id:nid(),text:inp.value.trim(),time:new Date().toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})});
+  saveDayNotes(ds,notes);
+  inp.value="";
+  render();
+}
+function delDayNote(ds,id){
+  const notes=getDayNotes(ds).filter(n=>n.id!==id);
+  saveDayNotes(ds,notes);
+  render();
+}
+
+// ── RELATÓRIO POR CLIENTE/PROCESSO ──
+function renderRelatorio(){
+  const now=new Date();
+  let rMonth=now.getMonth(), rYear=now.getFullYear();
+  // usar estado global se existir
+  if(typeof window.rMonth!=="undefined"){rMonth=window.rMonth;rYear=window.rYear;}
+  const ym=`${rYear}-${String(rMonth+1).padStart(2,"0")}`;
+  const logs=state.timeLogs.filter(l=>l.date&&l.date.startsWith(ym));
+
+  // agrupar por processo/cliente
+  const byProc={};
+  logs.forEach(l=>{
+    const task=state.tasks.find(t=>t.id===l.taskId);
+    if(!task)return;
+    const key=task.processo||(task.client?"cliente_"+task.client:"sem_processo");
+    const label=task.processo?`Proc. ${task.processo}${task.client?" · "+task.client:""}`:task.client||"Sem processo";
+    if(!byProc[key])byProc[key]={label,client:task.client||"",processo:task.processo||"",total:0,cats:{},tasks:[]};
+    byProc[key].total+=l.minutes;
+    byProc[key].cats[l.cat]=(byProc[key].cats[l.cat]||0)+l.minutes;
+    if(!byProc[key].tasks.find(t=>t.id===task.id))byProc[key].tasks.push(task);
+  });
+
+  const sorted=Object.values(byProc).sort((a,b)=>b.total-a.total);
+  const totalGeral=sorted.reduce((a,p)=>a+p.total,0);
+
+  // month selector
+  let opts="";
+  for(let i=11;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    opts+=`<option value="${d.getFullYear()}-${d.getMonth()}" ${d.getFullYear()===rYear&&d.getMonth()===rMonth?"selected":""}>${MONTHS[d.getMonth()]} ${d.getFullYear()}</option>`;
+  }
+
+  let html=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <div class="month-sel" style="margin-bottom:0">
+      <label style="font-size:12px;font-weight:600;color:var(--muted)">Mês:</label>
+      <select onchange="const v=this.value.split('-');window.rMonth=+v[1];window.rYear=+v[0];setView('relatorio')">${opts}</select>
+    </div>
+    <div style="margin-left:auto;font-size:13px;font-weight:700;color:var(--bx)">Total: ${fmtMins(totalGeral)}</div>
+  </div>`;
+
+  if(!sorted.length)return html+`<div class="empty"><div class="ei">📂</div>Sem registos de tempo neste mês.</div>`;
+
+  html+=`<div style="background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden margin-bottom:18px">
+  <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="background:var(--bxl)">
+      <th style="padding:10px 14px;text-align:left;color:var(--bx);font-weight:700">Processo / Cliente</th>
+      <th style="padding:10px 14px;text-align:right;color:var(--bx);font-weight:700">Total</th>
+      <th style="padding:10px 14px;text-align:right;color:var(--bx);font-weight:700">% do mês</th>
+      <th style="padding:10px 14px;text-align:left;color:var(--bx);font-weight:700">Distribuição</th>
+    </tr></thead>
+    <tbody>`;
+
+  sorted.forEach((p,i)=>{
+    const pct=totalGeral>0?Math.round(p.total/totalGeral*100):0;
+    const catBreak=Object.entries(p.cats).map(([cid,mins])=>{
+      const c=CAT[cid]||CAT.outro;
+      return`<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:${c.color}22;color:${c.color};font-weight:600;margin-right:4px">${c.label} ${fmtMins(mins)}</span>`;
+    }).join("");
+    html+=`<tr style="border-top:1px solid var(--border);background:${i%2===0?"#fff":"#fafafa"}" onclick="toggleProcDetail('proc_${i}')" style="cursor:pointer">
+      <td style="padding:10px 14px;font-weight:600;cursor:pointer">
+        <span style="color:var(--bx)">▸</span> ${p.label}
+        <div style="font-size:11px;color:var(--muted);font-weight:400;margin-top:2px">${p.tasks.length} tarefa(s)</div>
+      </td>
+      <td style="padding:10px 14px;text-align:right;font-weight:700;color:var(--bx)">${fmtMins(p.total)}</td>
+      <td style="padding:10px 14px;text-align:right">
+        <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end">
+          <div style="width:60px;height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden"><div style="width:${pct}%;height:100%;background:var(--bx);border-radius:4px"></div></div>
+          <span style="font-weight:700;color:var(--bx)">${pct}%</span>
+        </div>
+      </td>
+      <td style="padding:10px 14px">${catBreak}</td>
+    </tr>
+    <tr id="proc_${i}" style="display:none;background:var(--bxll)">
+      <td colspan="4" style="padding:8px 24px 12px">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px">Tarefas realizadas:</div>
+        ${p.tasks.map(t=>{
+          const tLogs=state.timeLogs.filter(l=>l.taskId===t.id&&l.date.startsWith(ym));
+          const tTotal=tLogs.reduce((a,l)=>a+l.minutes,0);
+          return`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+            <span style="flex:1;font-size:12px">${t.text}</span>
+            <span style="font-size:11px;color:var(--muted)">${fmtMins(tTotal)}</span>
+            ${t.done?`<span style="font-size:10px;background:#e8f5e9;color:#107c10;padding:2px 7px;border-radius:8px;font-weight:600">✓ Concluída</span>`:""}
+          </div>`;
+        }).join("")}
+      </td>
+    </tr>`;
+  });
+
+  html+=`</tbody>
+    <tfoot><tr style="background:var(--bxl);border-top:2px solid var(--border)">
+      <td style="padding:10px 14px;font-weight:700">Total geral</td>
+      <td style="padding:10px 14px;text-align:right;font-weight:700;color:var(--bx)">${fmtMins(totalGeral)}</td>
+      <td colspan="2"></td>
+    </tr></tfoot>
+  </table></div>`;
+
+  return html;
+}
+function toggleProcDetail(id){
+  const el=document.getElementById(id);
+  if(el)el.style.display=el.style.display==="none"?"table-row":"none";
+}
+
+// ── RENDERDIA com notas rápidas ──
+function renderDia(){
+  const d=new Date(selDay+"T12:00:00"),dn=d.getDay(),isT=selDay===today();
+  const dbs=state.blocks.filter(b=>b.days.includes(dn)).map(b=>({...b,_bl:true}));
+  const des=state.events.filter(ev=>ev.date===selDay).map(e=>({...e,_bl:false}));
+  const all=[...dbs,...des].sort((a,b)=>a.start-b.start);
+  let html=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+    <button class="btn btn-ghost btn-sm" onclick="selDay=toDS(addDays(new Date(selDay+'T12:00:00'),-1));render()">‹</button>
+    <span style="font-weight:700;font-size:14px">${DNAMES[dn]}, ${d.toLocaleDateString("pt-PT",{day:"numeric",month:"long",year:"numeric"})}</span>
+    ${isT?`<span style="background:var(--bx);color:#fff;border-radius:10px;padding:2px 9px;font-size:10px">Hoje</span>`:""}
+    <button class="btn btn-ghost btn-sm" onclick="selDay=toDS(addDays(new Date(selDay+'T12:00:00'),1));render()">›</button>
+    <button class="btn btn-secondary btn-sm" onclick="selDay=toDS(new Date());render()">Hoje</button>
+  </div>`;
+  if(!all.length)return html+`<div class="empty"><div class="ei">📭</div>Sem blocos ou eventos neste dia.</div>`;
+  all.forEach(item=>{
+    const c=CAT[item.cat]||CAT.outro;
+    const oc=item._bl?`openBlockModal('${item.id}')`:`openEventModal('${selDay}',null,'${item.id}')`;
+    html+=`<div class="dia-item" onclick="${oc}" style="opacity:${item._bl?.6:1}">
+      <div class="dia-time">${fmt(item.start)}<br><span style="font-size:10px;font-weight:400">–${fmt(item.end)}</span></div>
+      <div class="dia-card" style="border-left:5px solid ${c.color}">
+        <div style="font-weight:700;font-size:14px">${item.title||item.label||c.label}</div>
+        <div style="font-size:11px;font-weight:600;color:${c.color};margin-top:2px">${c.label}${item._bl?" (bloco base)":""}</div>
+        ${item.client?`<div style="font-size:12px;color:#555;margin-top:4px">👤 ${item.client}</div>`:""}
+        ${item.notes?`<div style="font-size:12px;color:var(--muted);margin-top:3px;font-style:italic">${item.notes}</div>`:""}
+      </div>
+    </div>`;
+  });
+  return html;
+}
+
+// ── MONDAY NOTE ──
+function generateMondayNote(t){
+  const tt=TASK_TYPES.find(x=>x.id===t.type)||TASK_TYPES[0];
+  const logs=state.timeLogs.filter(l=>l.taskId===t.id);
+  const total=taskTotalMins(t.id);
+  const logsDetail=logs.map(l=>{
+    let line=`  • ${fmtDate(l.date)}`;
+    if(l.startTime&&l.endTime)line+=` · ${l.startTime}→${l.endTime}`;
+    line+=` · ${fmtMins(l.minutes)}`;
+    if(l.note&&l.note!=="Cronómetro"&&l.note!=="Manual")line+=` (${l.note})`;
+    return line;
+  }).join("\n");
+  return`📋 REGISTO DE ATO PROCESSUAL
+──────────────────────────────
+Tarefa: ${t.text}
+Tipo: ${tt.label}${t.type==="processual"?`
+Cliente: ${t.client||"—"}
+Nº Processo: ${t.processo||"—"}`:`${t.client?`\nDetalhe: ${t.client}`:""}`}
+Área: ${t.area}
+Data conclusão: ${fmtDate(today())}
+──────────────────────────────
+⏱ TEMPO TOTAL: ${fmtMins(total)}
+${logsDetail?`\nDetalhe de sessões:\n${logsDetail}`:""}
+──────────────────────────────
+Instrução: Por favor regista este ato no processo acima indicado com o tempo despendido e data.`;
+}
+
+function copyMondayNote(id){
+  const t=state.tasks.find(x=>x.id===id);
+  if(!t)return;
+  const note=generateMondayNote(t);
+  navigator.clipboard.writeText(note).then(()=>{
+    const btn=document.getElementById("copy-btn-"+id);
+    if(btn){btn.textContent="✅ Copiado!";btn.style.background="#e8f5e9";btn.style.color="#107c10";setTimeout(()=>{btn.textContent="📋 Copiar para Monday";btn.style.background="";btn.style.color="";},2500);}
+  }).catch(()=>alert("Não foi possível copiar. Copia manualmente:\n\n"+note));
+}
+
+function previewMondayNote(id,note){
+  const t=state.tasks.find(x=>x.id===id);
+  if(!t)return;
+  if(!note)note=generateMondayNote(t);
+  const escaped=note.replace(/\\/g,"\\\\").replace(/`/g,"\\`");
+  openModal(`<h2>📋 Instrução para o assistente Monday</h2>
+    <div style="background:#f8f9fa;border-radius:10px;padding:14px;font-size:12px;white-space:pre-wrap;font-family:monospace;line-height:1.7;color:var(--text);margin-bottom:14px;max-height:360px;overflow-y:auto;border:1.5px solid var(--border)">${note}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">💡 Copia este texto e cola no assistente de IA do Monday. Ele irá criar o subelemento automaticamente no processo correto.</div>
+    <div class="modal-btns">
+      <button class="btn btn-primary" onclick="navigator.clipboard.writeText(\`${escaped}\`).then(()=>{this.textContent='✅ Copiado!';this.style.background='#107c10';setTimeout(()=>{this.textContent='📋 Copiar';this.style.background=''},2500)})">📋 Copiar</button>
+      <button class="btn btn-secondary" onclick="closeModal()">Fechar</button>
+    </div>`);
+}
+
+// ── TAREFAS ──
+function renderTarefas(){
+  const td=today();
+  const overdue=state.tasks.filter(t=>!t.done&&t.date&&t.date<td);
+  const todayT=state.tasks.filter(t=>!t.done&&(t.hoje||t.date===td));
+  const scheduled=state.tasks.filter(t=>!t.done&&t.date&&t.date>td);
+  const pending=state.tasks.filter(t=>!t.done&&!t.date&&!t.hoje);
+  const done=state.tasks.filter(t=>t.done);
+
+  const groups=[
+    {id:"overdue",title:"⚠️ Prazo Ultrapassado",sub:"Requer atenção imediata",color:"#c50f1f",bg:"#fde7e9",tasks:overdue},
+    {id:"today",title:"⚡ Para Hoje",sub:"Foco do dia",color:"#ca5010",bg:"#fdf2e9",tasks:todayT.filter(t=>!overdue.find(o=>o.id===t.id))},
+    {id:"scheduled",title:"📅 Agendadas",sub:"Com data futura",color:"#0078d4",bg:"#e8f0fe",tasks:scheduled.filter(t=>!todayT.find(o=>o.id===t.id))},
+    {id:"pending",title:"📋 Pendentes",sub:"Sem data definida",color:"#767676",bg:"#f3f3f3",tasks:pending},
+    {id:"done",title:"✅ Concluídas",sub:"Prontas para Monday",color:"#107c10",bg:"#e8f5e9",tasks:done}
+  ];
+
+  let html="";
+  groups.forEach(g=>{
+    if(!g.tasks.length)return;
+    html+=`<div class="task-group"><div class="tg-header" style="background:${g.bg};color:${g.color}">${g.title}<span style="font-weight:400;font-size:11px;opacity:.7;margin-left:6px">— ${g.sub}</span><span style="margin-left:auto;font-size:12px">${g.tasks.length}</span></div>`;
+    g.tasks.forEach(t=>{
+      const ac=ACOL[t.area]||"#999";
+      const tt=TASK_TYPES.find(x=>x.id===t.type)||TASK_TYPES[0];
+      const total=taskTotalMins(t.id);
+      const isRunning=activeTimer.taskId===t.id;
+      const isDone=t.done;
+      html+=`<div class="task-row${isDone?" done":""}" style="border-left:4px solid ${isDone?"#107c10":ac}">
+        <input type="checkbox" ${isDone?"checked":""} onchange="toggleTask('${t.id}')" style="width:15px;height:15px;flex-shrink:0;accent-color:var(--bx)">
+        <div class="tr-main">
+          <div class="tr-title">${t.text}</div>
+          <div class="tr-sub">${tt.label}${t.type==="processual"&&t.client?` · 👤 ${t.client}`:""}${t.type==="processual"&&t.processo?` · Proc. ${t.processo}`:""}${t.date?` · 📅 ${fmtDate(t.date)}`:""}</div>
+        </div>
+        <span class="tag" style="background:${ac}22;color:${ac}">${t.area}</span>
+        ${total>0?`<span class="tr-time">⏱ ${fmtMins(total)}</span>`:""}
+        <div class="tr-actions">
+          ${isDone
+            ?`<button id="monday-btn-${t.id}" onclick="sendToMonday('${t.id}')" style="padding:4px 10px;border-radius:8px;border:none;font-size:11px;font-weight:700;background:var(--bxl);color:var(--bx);cursor:pointer">📋 Copiar para Monday</button>`
+            :`<button class="timer-btn ${isRunning?"timer-running":"timer-stopped"}" id="timer-display-${t.id}" onclick="${isRunning?"stopTimer()":"startTimer('"+t.id+"')"}">${isRunning?"⏹ A contar":"▶ Timer"}</button>
+              <button onclick="openTimeLog('${t.id}')" title="Registar tempo">🕐</button>`
+          }
+          <button onclick="openTaskModal('${t.id}')">✏️</button>
+          <button onclick="delTask('${t.id}')">🗑️</button>
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  return html||`<div class="empty"><div class="ei">🎉</div>Sem tarefas!</div>`;
+}
+
+// ── DASHBOARD ──
+function renderDashboard(){
+  const ym=(y,m)=>`${y}-${String(m+1).padStart(2,"0")}`;
+  const logsForMonth=(y,m)=>state.timeLogs.filter(l=>l.date&&l.date.startsWith(ym(y,m)));
+  const logs=logsForMonth(dashYear,dashMonth);
+  const totalMins=logs.reduce((a,l)=>a+l.minutes,0);
+
+  // by cat
+  const byCat={};
+  CATS.forEach(c=>{byCat[c.id]=logs.filter(l=>l.cat===c.id).reduce((a,l)=>a+l.minutes,0);});
+  const maxMins=Math.max(...Object.values(byCat),1);
+
+  // build year/month options
+  const now=new Date();
+  let opts="";
+  for(let i=11;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    opts+=`<option value="${d.getFullYear()}-${d.getMonth()}" ${d.getFullYear()===dashYear&&d.getMonth()===dashMonth?"selected":""}>${MONTHS[d.getMonth()]} ${d.getFullYear()}</option>`;
+  }
+  let cmpOpts="";
+  for(let i=11;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    cmpOpts+=`<option value="${d.getFullYear()}-${d.getMonth()}" ${d.getFullYear()===cmpYear&&d.getMonth()===cmpMonth?"selected":""}>${MONTHS[d.getMonth()]} ${d.getFullYear()}</option>`;
+  }
+
+  let html=`<div class="month-sel">
+    <label style="font-size:12px;font-weight:600;color:var(--muted)">Mês:</label>
+    <select onchange="const v=this.value.split('-');dashYear=+v[0];dashMonth=+v[1];render()">${opts}</select>
+    <label style="font-size:12px;font-weight:600;color:var(--muted);margin-left:10px">Comparar com:</label>
+    <select onchange="const v=this.value.split('-');cmpYear=+v[0];cmpMonth=+v[1];dashCmp=true;render()">${cmpOpts}</select>
+    <button class="btn btn-secondary btn-sm" onclick="dashCmp=!dashCmp;render()">${dashCmp?"Ocultar comparação":"Mostrar comparação"}</button>
+  </div>`;
+
+  // KPIs
+  html+=`<div class="dash-grid">
+    <div class="kpi-card" style="border-top-color:var(--bx)"><div class="kv">${fmtMins(totalMins)}</div><div class="kl">Total registado em ${MONTHS[dashMonth]}</div></div>
+    ${CATS.filter(c=>byCat[c.id]>0).slice(0,3).map(c=>`<div class="kpi-card" style="border-top-color:${c.color}"><div class="kv" style="color:${c.color}">${fmtMins(byCat[c.id])}</div><div class="kl">${c.label}</div><div class="kp" style="color:${c.color}">${totalMins>0?Math.round(byCat[c.id]/totalMins*100):0}%</div></div>`).join("")}
+  </div>`;
+
+  // Bar chart
+  html+=`<div class="chart-wrap"><h3>⏱ Distribuição de tempo — ${MONTHS[dashMonth]} ${dashYear}</h3>`;
+  CATS.forEach(c=>{
+    const mins=byCat[c.id];
+    if(!mins&&!dashCmp)return;
+    const pct=Math.round(mins/maxMins*100);
+    let cmpBar="";
+    if(dashCmp){
+      const cLogs=logsForMonth(cmpYear,cmpMonth);
+      const cMins=cLogs.filter(l=>l.cat===c.id).reduce((a,l)=>a+l.minutes,0);
+      const cPct=Math.round(cMins/maxMins*100);
+      cmpBar=`<div style="margin-top:3px;display:flex;align-items:center;gap:10px"><div style="width:120px;font-size:10px;color:var(--muted)">${MONTHS[cmpMonth]}</div><div class="bar-track"><div class="bar-fill" style="width:${cPct}%;background:${c.color};opacity:.4"></div></div><div style="width:70px;font-size:10px;color:var(--muted);text-align:right">${fmtMins(cMins)}</div></div>`;
+    }
+    html+=`<div class="bar-row"><div class="bar-label" title="${c.label}">${c.label}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${c.color}"></div></div><div class="bar-val">${fmtMins(mins)} · ${totalMins>0?Math.round(mins/totalMins*100):0}%</div></div>${cmpBar}`;
+  });
+  html+=`</div>`;
+
+  // Pie-style legend
+  if(totalMins>0){
+    html+=`<div class="chart-wrap"><h3>🥧 Percentagem por categoria</h3><div style="display:flex;flex-wrap:wrap;gap:10px">`;
+    CATS.filter(c=>byCat[c.id]>0).forEach(c=>{
+      const pct=Math.round(byCat[c.id]/totalMins*100);
+      html+=`<div style="display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:8px;padding:8px 14px;min-width:160px">
+        <div style="width:36px;height:36px;border-radius:50%;background:${c.color};display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700">${pct}%</div>
+        <div><div style="font-size:13px;font-weight:600">${c.label}</div><div style="font-size:11px;color:var(--muted)">${fmtMins(byCat[c.id])}</div></div>
+      </div>`;
+    });
+    html+=`</div></div>`;
+  }
+
+  // ── Por dia ──
+  const logsByDay={};
+  logs.forEach(l=>{
+    if(!logsByDay[l.date])logsByDay[l.date]={total:0,cats:{}};
+    logsByDay[l.date].total+=l.minutes;
+    logsByDay[l.date].cats[l.cat]=(logsByDay[l.date].cats[l.cat]||0)+l.minutes;
+  });
+  const sortedDays=Object.keys(logsByDay).sort();
+  if(sortedDays.length){
+    html+=`<div class="chart-wrap"><h3>📅 Horas por dia — ${MONTHS[dashMonth]} ${dashYear}</h3>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr style="background:var(--bxl)">
+        <th style="padding:8px 10px;text-align:left;color:var(--bx);font-weight:700;border-radius:6px 0 0 0">Dia</th>
+        <th style="padding:8px 10px;text-align:right;color:var(--bx);font-weight:700">Total</th>
+        ${CATS.filter(c=>sortedDays.some(d=>logsByDay[d].cats[c.id])).map(c=>`<th style="padding:8px 10px;text-align:right;color:${c.color};font-weight:700">${c.label}</th>`).join("")}
+      </tr></thead>
+      <tbody>
+      ${sortedDays.map((ds,i)=>{
+        const row=logsByDay[ds];
+        const[y,m,d]=ds.split("-");
+        const date=new Date(+y,+m-1,+d);
+        const dn=DSHORT[date.getDay()];
+        const isToday=ds===today();
+        return`<tr style="background:${isToday?"var(--bxl)":i%2===0?"#fff":"#fafafa"};border-top:1px solid var(--border)">
+          <td style="padding:8px 10px;font-weight:${isToday?"700":"500"}">${dn} ${+d}${isToday?" 🔵":""}</td>
+          <td style="padding:8px 10px;text-align:right;font-weight:700;color:var(--bx)">${fmtMins(row.total)}</td>
+          ${CATS.filter(c=>sortedDays.some(d=>logsByDay[d].cats[c.id])).map(c=>`<td style="padding:8px 10px;text-align:right;color:${c.color}">${row.cats[c.id]?fmtMins(row.cats[c.id]):"—"}</td>`).join("")}
+        </tr>`;
+      }).join("")}
+      </tbody>
+      <tfoot><tr style="background:var(--bxl);border-top:2px solid var(--border)">
+        <td style="padding:8px 10px;font-weight:700">Total</td>
+        <td style="padding:8px 10px;text-align:right;font-weight:700;color:var(--bx)">${fmtMins(totalMins)}</td>
+        ${CATS.filter(c=>sortedDays.some(d=>logsByDay[d].cats[c.id])).map(c=>`<td style="padding:8px 10px;text-align:right;font-weight:700;color:${c.color}">${fmtMins(byCat[c.id]||0)}</td>`).join("")}
+      </tr></tfoot>
+    </table></div></div>`;
+  }
+
+  if(!state.timeLogs.length)html+=`<div class="empty"><div class="ei">📊</div>Ainda sem registos de tempo.<br><span style="font-size:12px">Usa o botão ▶ Timer nas tarefas para começar.</span></div>`;
+  return html;
+}
+
+// ── BLOCOS ──
+function renderBlocos(){
+  if(!state.blocks.length)return`<div class="empty"><div class="ei">⚙️</div>Sem blocos base. Cria o primeiro!</div>`;
+  let html=`<div class="legend-row">${CATS.map(c=>`<div class="legend-item"><span class="ldot" style="background:${c.color}"></span>${c.label}</div>`).join("")}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px">`;
+  state.blocks.forEach(b=>{
+    const c=CAT[b.cat]||CAT.outro;
+    html+=`<div style="background:var(--white);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);cursor:pointer;border-left:5px solid ${c.color};transition:transform .12s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''" onclick="openBlockModal('${b.id}')">
+      <div style="font-weight:700;font-size:14px">${b.label||c.label}</div>
+      <div style="font-size:12px;color:${c.color};margin-top:4px">${c.label} · ${fmt(b.start)}–${fmt(b.end)}</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px">${b.days.map(n=>`<span style="background:var(--bxl);color:var(--bx);padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700">${DSHORT[n]}</span>`).join("")}</div>
+    </div>`;
+  });
+  return html+`</div>`;
+}
+
+// ── MODALS ──
+function openModal(html){document.getElementById("modal-body").innerHTML=html;document.getElementById("overlay").style.display="flex";}
+function closeModal(){document.getElementById("overlay").style.display="none";}
+
+function openEventModal(date,hour,id){
+  const ev=id?state.events.find(e=>e.id===id):null;
+  const d=ev||{title:"",cat:"reuniao",date:date||selDay||today(),start:+(hour||9),end:+(hour||9)+1,client:"",notes:""};
+  openModal(`<h2>${ev?"Editar evento":"Novo evento"}</h2>
+    <div class="ff"><label>Título *</label><input id="f-title" value="${d.title}" placeholder="ex: Reunião com cliente"/></div>
+    <div class="ff"><label>Data</label><input id="f-date" type="date" value="${d.date}"/></div>
+    <div class="row2"><div class="ff"><label>Início</label><select id="f-start">${HOURS.map(h=>`<option value="${h}"${h===d.start?" selected":""}>${fmt(h)}</option>`).join("")}</select></div>
+    <div class="ff"><label>Fim</label><select id="f-end">${HOURS.slice(1).map(h=>`<option value="${h}"${h===d.end?" selected":""}>${fmt(h)}</option>`).join("")}</select></div></div>
+    <div class="ff"><label>Categoria</label><select id="f-cat">${CATS.map(c=>`<option value="${c.id}"${c.id===d.cat?" selected":""}>${c.label}</option>`).join("")}</select></div>
+    <div class="ff"><label>Cliente / Contacto</label><input id="f-client" value="${d.client||""}" placeholder="ex: João Silva"/></div>
+    <div class="ff"><label>Notas</label><textarea id="f-notes">${d.notes||""}</textarea></div>
+    <div class="modal-btns">
+      <button class="btn btn-primary" onclick="saveEvent('${ev?ev.id:""}')">Guardar</button>
+      ${ev?`<button class="btn btn-del" onclick="delEvent('${ev.id}')">Eliminar</button>`:""}
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+    </div>`);
+}
+function saveEvent(id){
+  const title=document.getElementById("f-title").value.trim();if(!title)return alert("Coloca um título.");
+  const start=+document.getElementById("f-start").value,end=+document.getElementById("f-end").value;if(end<=start)return alert("Hora de fim inválida.");
+  const ev={id:id||nid(),title,cat:document.getElementById("f-cat").value,date:document.getElementById("f-date").value,start,end,client:document.getElementById("f-client").value,notes:document.getElementById("f-notes").value};
+  state.events=id?state.events.map(e=>e.id===id?ev:e):[...state.events,ev];
+  syncUp("eventos",eToR(state.events));closeModal();render();
+}
+function delEvent(id){state.events=state.events.filter(e=>e.id!==id);syncUp("eventos",eToR(state.events));closeModal();render();}
+
+function openTaskModal(id){
+  const tk=id?state.tasks.find(t=>t.id===id):null;
+  const d=tk||{text:"",area:"Trabalho",quadrant:"UIP",hoje:false,date:"",type:"gestao",client:"",processo:""};
+  openModal(`<h2>${tk?"Editar tarefa":"Nova tarefa"}</h2>
+    <div class="ff"><label>Nome da tarefa *</label><input id="f-text" value="${d.text}" placeholder="ex: Preparar contrato"/></div>
+    <div class="ff"><label>Tipo</label><select id="f-type" onchange="updateTaskTypeFields(this.value)">
+      ${TASK_TYPES.map(t=>`<option value="${t.id}"${t.id===d.type?" selected":""}>${t.label}</option>`).join("")}
+    </select></div>
+    <div id="f-type-fields">
+      ${d.type==="processual"?`<div class="row2"><div class="ff"><label>Cliente</label><input id="f-client" value="${d.client||""}" placeholder="Nome do cliente"/></div><div class="ff"><label>Nº Processo</label><input id="f-processo" value="${d.processo||""}" placeholder="ex: 2024/001"/></div></div>`:""}
+      ${d.type==="outro"||d.type==="reuniao"||d.type==="admin"?`<div class="ff"><label>Detalhe</label><input id="f-client" value="${d.client||""}" placeholder="Detalhe adicional"/></div>`:""}
+    </div>
+    <div class="row2">
+      <div class="ff"><label>Área</label><select id="f-area">${AREAS.map(a=>`<option${a===d.area?" selected":""}>${a}</option>`).join("")}</select></div>
+      <div class="ff"><label>Quadrante</label><select id="f-quad">${QUADS.map(q=>`<option value="${q.id}"${q.id===d.quadrant?" selected":""}>${q.label}</option>`).join("")}</select></div>
+    </div>
+    <div class="ff"><label>Data (aparece no calendário)</label><input id="f-date" type="date" value="${d.date||""}"/></div>
+    <div class="ff"><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="f-hoje" ${d.hoje?"checked":""}> Para hoje</label></div>
+    <div class="modal-btns">
+      <button class="btn btn-primary" onclick="saveTask('${tk?tk.id:""}')">Guardar</button>
+      ${tk?`<button class="btn btn-del" onclick="delTask('${tk.id}')">Eliminar</button>`:""}
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+    </div>`);
+}
+function updateTaskTypeFields(type){
+  const el=document.getElementById("f-type-fields");if(!el)return;
+  if(type==="processual")el.innerHTML=`<div class="row2"><div class="ff"><label>Cliente</label><input id="f-client" placeholder="Nome do cliente"/></div><div class="ff"><label>Nº Processo</label><input id="f-processo" placeholder="ex: 2024/001"/></div></div>`;
+  else if(type==="gestao")el.innerHTML="";
+  else el.innerHTML=`<div class="ff"><label>Detalhe</label><input id="f-client" placeholder="Detalhe adicional"/></div>`;
+}
+function saveTask(id){
+  const text=document.getElementById("f-text").value.trim();if(!text)return alert("Escreve o nome da tarefa.");
+  const base=id?state.tasks.find(t=>t.id===id):{};
+  const type=document.getElementById("f-type").value;
+  const client=document.getElementById("f-client")?document.getElementById("f-client").value:"";
+  const processo=document.getElementById("f-processo")?document.getElementById("f-processo").value:"";
+  const tk={id:id||nid(),text,area:document.getElementById("f-area").value,quadrant:document.getElementById("f-quad").value,hoje:document.getElementById("f-hoje").checked,done:base.done||false,date:document.getElementById("f-date").value,type,client,processo};
+  state.tasks=id?state.tasks.map(t=>t.id===id?tk:t):[...state.tasks,tk];
+  syncUp("tarefas",tToR(state.tasks));closeModal();render();
+}
+function toggleTask(id){state.tasks=state.tasks.map(t=>t.id===id?{...t,done:!t.done}:t);syncUp("tarefas",tToR(state.tasks));render();}
+function delTask(id){state.tasks=state.tasks.filter(t=>t.id!==id);syncUp("tarefas",tToR(state.tasks));closeModal();render();}
+
+function openTimeLog(taskId){
+  const task=state.tasks.find(t=>t.id===taskId);
+  const logs=state.timeLogs.filter(l=>l.taskId===taskId);
+  const total=taskTotalMins(taskId);
+  const logsHtml=logs.length?logs.map(l=>`<div class="time-entry"><span style="flex:1">${fmtDate(l.date)}${l.startTime?` · <b>${l.startTime}→${l.endTime}</b>`:""} — ${fmtMins(l.minutes)}</span><span style="color:var(--muted);font-size:10px">${l.note}</span><button class="te-del" onclick="delLogAndRefresh('${l.id}','${taskId}')">✕</button></div>`).join(""):`<div style="font-size:12px;color:var(--muted)">Sem registos ainda.</div>`;
+  openModal(`<h2>⏱ Tempo — ${task?task.text:"Tarefa"}</h2>
+    <div class="modal-time-log"><h4>Histórico · Total: ${fmtMins(total)}</h4>${logsHtml}</div>
+    <div class="ff"><label>Registar tempo manualmente</label>
+      <div class="row2">
+        <div class="ff"><label>Minutos</label><input id="f-mins" type="number" min="1" value="30" placeholder="30"/></div>
+        <div class="ff"><label>Categoria</label><select id="f-tcat">${CATS.map(c=>`<option value="${c.id}"${c.id===(task?.type||"gestao")?" selected":""}>${c.label}</option>`).join("")}</select></div>
+      </div>
+      <div class="ff"><label>Nota</label><input id="f-tnote" placeholder="ex: Revisão de documentos"/></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-primary" onclick="saveManualTime('${taskId}')">Adicionar registo</button>
+      <button class="btn btn-secondary" onclick="closeModal()">Fechar</button>
+    </div>`);
+}
+function saveManualTime(taskId){
+  const mins=+document.getElementById("f-mins").value;
+  if(!mins||mins<1)return alert("Insere um número de minutos válido.");
+  const cat=document.getElementById("f-tcat").value;
+  const note=document.getElementById("f-tnote").value||"Manual";
+  addManualTime(taskId,mins,note,cat);
+  closeModal();render();
+}
+function delLogAndRefresh(logId,taskId){delLog(logId);openTimeLog(taskId);}
+
+function openBlockModal(id){
+  const bl=id?state.blocks.find(b=>b.id===id):null;
+  const d=bl||{label:"",cat:"producao",start:9,end:11,days:[1,2,3,4,5]};
+  const db=[1,2,3,4,5].map(n=>`<label style="display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer;background:${d.days.includes(n)?"var(--bx)":"#e0e0e0"};color:${d.days.includes(n)?"#fff":"#333"};border-radius:8px;padding:4px 10px;font-weight:600"><input type="checkbox" style="display:none" ${d.days.includes(n)?"checked":""} onchange="tdb(this,${n})">${DSHORT[n]}</label>`).join("");
+  openModal(`<h2>${bl?"Editar bloco":"Novo bloco base"}</h2>
+    <div class="ff"><label>Nome</label><input id="f-label" value="${d.label}" placeholder="ex: Produção de conteúdo"/></div>
+    <div class="ff"><label>Categoria</label><select id="f-cat">${CATS.map(c=>`<option value="${c.id}"${c.id===d.cat?" selected":""}>${c.label}</option>`).join("")}</select></div>
+    <div class="row2"><div class="ff"><label>Início</label><select id="f-start">${HOURS.map(h=>`<option value="${h}"${h===d.start?" selected":""}>${fmt(h)}</option>`).join("")}</select></div>
+    <div class="ff"><label>Fim</label><select id="f-end">${HOURS.slice(1).map(h=>`<option value="${h}"${h===d.end?" selected":""}>${fmt(h)}</option>`).join("")}</select></div></div>
+    <div class="ff"><label>Dias da semana</label><div id="day-btns" style="display:flex;gap:6px;flex-wrap:wrap">${db}</div></div>
+    <div class="modal-btns">
+      <button class="btn btn-primary" onclick="saveBlock('${bl?bl.id:""}')">Guardar</button>
+      ${bl?`<button class="btn btn-del" onclick="delBlock('${bl.id}')">Eliminar</button>`:""}
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+    </div>`);
+}
+function tdb(cb,n){const l=cb.parentElement;if(cb.checked){l.style.background="var(--bx)";l.style.color="#fff";}else{l.style.background="#e0e0e0";l.style.color="#333";}}
+function saveBlock(id){
+  const start=+document.getElementById("f-start").value,end=+document.getElementById("f-end").value;if(end<=start)return alert("Hora de fim inválida.");
+  const days=[...document.getElementById("day-btns").querySelectorAll("input")].filter(i=>i.checked).map(i=>+i.getAttribute("onchange").match(/\d+/)[0]);
+  const bl={id:id||nid(),label:document.getElementById("f-label").value,cat:document.getElementById("f-cat").value,start,end,days};
+  state.blocks=id?state.blocks.map(b=>b.id===id?bl:b):[...state.blocks,bl];
+  syncUp("blocos",bToR(state.blocks));closeModal();render();
+}
+function delBlock(id){state.blocks=state.blocks.filter(b=>b.id!==id);syncUp("blocos",bToR(state.blocks));closeModal();render();}
+
+loadAll();
+
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("/sw.js").catch(()=>{});
+}
+</script>
+</body>
+</html>
